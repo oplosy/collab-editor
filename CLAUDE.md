@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**Scaffolded — Faz 0–6 implemented.** The monorepo, Prisma schema, auth, document
-CRUD, ws-server sync, persistence and frontend are in place; the spec bundle under
+**Done — Faz 0–12 implemented.** The monorepo, Prisma schema, auth, document
+CRUD, Go sync server, persistence, frontend, history/replay, export, and
+sharing/roles/public-links are in place; the spec bundle under
 `docs/` remains the rationale reference. Read the relevant file before extending a phase:
 
 - `docs/CLAUDE.md` — source-of-truth project context (Turkish): decisions, invariants, commands, roadmap.
@@ -44,15 +45,17 @@ here means **reconcile, not reject**.
 ```
 apps/
   web/          # Next.js App Router — UI, Server Actions, REST auth
-  ws-server/    # Standalone Node ws server — Yjs sync + persistence
+services/
+  api-go/       # Standalone Go sync server — Yjs sync + persistence + mirror JSON API
 packages/
-  db/           # Prisma schema + client (imported by both apps)
+  db/           # Prisma schema + client (imported by web; Go uses pgx/goose on the same schema)
   protocol/     # Shared WS message types, auth token verification
   shared/       # Shared types, zod schemas
 ```
 
-Key rule: **web and ws-server are separate processes.** They share the DB schema through
-`packages/db`, not through Next. The WS server is deliberately NOT inside Next (see ADR 0002).
+Key rule: **web and api-go are separate processes.** They share the DB schema
+(Prisma for Node, pgx/goose for Go), not through Next. The sync server is
+deliberately NOT inside Next (see ADR 0002).
 
 ## Invariants — Never Violate
 
@@ -70,16 +73,17 @@ If a proposed solution would violate one of these, STOP and flag it (by number) 
 
 ## Common Mistakes to Avoid (from playbook §4)
 
-- Opening a WebSocket inside a Next Server Component → wrong. Use the separate ws-server + a client component.
+- Opening a WebSocket inside a Next Server Component → wrong. Use the separate sync server (`services/api-go`) + a client component.
 - Syncing text as a plain-string diff → violates invariant #1. Use binary updates.
 - Adding and incrementing a manual `version: int` column → violates invariant #5.
 - Pruning the op log before the snapshot is committed → violates invariant #3.
 - Persisting awareness (cursor/presence) data to the DB → it is ephemeral; do not persist.
 - Deferring the auth handshake and adding it later → violates invariant #2. Handshake precedes the first message.
 
-## Phase Roadmap (advance in order; detail in docs/roadmap.md)
+## Phase Roadmap (complete — all phases shipped with green tests)
 
-Do not start a phase before the previous phase's tests are green.
+Kept as build history. Later tracks (F10 sharing polish, F11 history, F12 roles/public-links/export)
+landed on top; their notes live under `docs/f12-demo/` and in git history.
 
 0. Monorepo skeleton, Prisma schema + migration, health check
 1. Auth (register/login, JWT cookie, Server Actions)
@@ -112,13 +116,16 @@ zod · jose (JWT). Tests: vitest (unit), playwright (multi-client E2E).
 
 ```bash
 pnpm install
-pnpm db:migrate            # prisma migrate dev
+pnpm db:migrate            # prisma migrate deploy (apply pending; Prisma owns the schema)
+pnpm db:migrate:dev        # author a NEW migration (needs a Prisma-only DB — see README)
+pnpm migrate:go            # Go baseline + FK constraints, after Prisma
 pnpm db:studio             # prisma studio
-pnpm dev                   # web + ws-server in parallel
+pnpm dev                   # web (:3000) + Go sync server (:8080) in parallel
 pnpm --filter web dev
-pnpm --filter ws-server dev
+pnpm dev:go                # Go sync server alone
 pnpm test                  # vitest
 pnpm test:e2e              # playwright multi-client
+pnpm test:go               # Go unit tests
 pnpm typecheck
 ```
 

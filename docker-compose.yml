@@ -20,8 +20,8 @@ services:
       timeout: 5s
       retries: 5
 
-  # Go backend (F0 skeleton, opt-in). Default `docker compose up` değişmez:
-  # sadece `--profile go` ile ayağa kalkar. Node servislerine dokunmaz.
+  # Go sync server (canonical backend, opt-in profile). Default `docker compose up`
+  # değişmez: sadece `--profile go` ile ayağa kalkar.
   api-go:
     build: ./services/api-go
     container_name: collab-editor-api-go

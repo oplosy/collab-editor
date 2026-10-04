@@ -31,15 +31,16 @@ her replika bağımsız düzenlenip deterministik biçimde merge edilir; hiçbir
 ```
 apps/
   web/              # Next.js App Router (UI, Server Actions, REST auth)
-  ws-server/        # Bağımsız Node.js ws server (Yjs sync + persistence)
+services/
+  api-go/           # Bağımsız Go sync server (Yjs sync + persistence + mirror JSON API)
 packages/
-  db/               # Prisma schema + client (her iki app import eder)
+  db/               # Prisma schema + client (web kullanır; Go aynı şemaya pgx/goose ile erişir)
   protocol/         # Paylaşılan WS mesaj tipleri, auth token doğrulama
   shared/           # Ortak tipler, zod şemaları
 ```
 
-Ana kural: **web ve ws-server ayrı process'lerdir**, Postgres üzerinden değil,
-paylaşılan `packages/db` üzerinden aynı şemayı kullanır. WS server Next'in içinde
+Ana kural: **web ve api-go ayrı process'lerdir**, aynı Postgres şemasını
+kullanırlar (Node tarafı Prisma, Go tarafı pgx/goose). Sync server Next'in içinde
 DEĞİLDİR — bu bilinçli bir mimari karardır (docs/adr/0002).
 
 ## Teknoloji Sürümleri (sabit)
@@ -66,7 +67,7 @@ DEĞİLDİR — bu bilinçli bir mimari karardır (docs/adr/0002).
 
 ## Geliştirme Sırası (fazlar — sırayla ilerle)
 
-Detay: `docs/roadmap.md`. Her faz bitince ilgili faz için testler yeşil olmalı.
+Tamamlandı: tüm fazlar testler yeşil şekilde kapandı. Son track'ler (F10–F12: paylaşım, history, roller/public-link/export) git history ve `docs/f12-demo/` altında.
 
 1. Faz 0 — Monorepo iskeleti, Prisma şeması, migration, health check
 2. Faz 1 — Auth (register/login, JWT cookie, Server Actions)
@@ -91,11 +92,12 @@ Detay: `docs/roadmap.md`. Her faz bitince ilgili faz için testler yeşil olmal�
 
 ```bash
 pnpm install
-pnpm db:migrate          # prisma migrate dev
+pnpm db:migrate          # prisma migrate deploy (uygula); ardından pnpm migrate:go
+pnpm db:migrate:dev      # YENİ migration yazarken (Prisma-only DB gerekir)
 pnpm db:studio           # prisma studio
-pnpm dev                 # web + ws-server paralel (turbo/concurrently)
+pnpm dev                 # web (:3000) + Go sync server (:8080) paralel
 pnpm --filter web dev
-pnpm --filter ws-server dev
+pnpm dev:go              # Go sync server tek başına
 pnpm test                # vitest
 pnpm test:e2e            # playwright multi-client
 pnpm typecheck

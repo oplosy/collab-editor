@@ -76,10 +76,16 @@ pnpm install
 cp .env.example .env        # DATABASE_URL + JWT_SECRET (a single root .env, loaded by both apps)
 # For a real deployment, generate a strong secret: openssl rand -base64 48
 
-# 3. Database
+# 3. Database (order matters: Prisma owns the schema, Go follows)
 docker compose up -d        # Postgres 16 (host :5433 — native PG often squats 5432)
-pnpm db:migrate             # apply Prisma migrations
+pnpm db:migrate             # apply pending Prisma migrations (non-interactive deploy)
+pnpm migrate:go             # Go baseline (no-op on a Prisma-migrated DB) + FK constraints
 pnpm db:generate            # generate the Prisma client — required after every schema change
+
+# Authoring a NEW Prisma migration uses the dev flow instead:
+#   pnpm db:migrate:dev
+# (run it against a Prisma-only database: the goose tracking table reads as
+# drift to `migrate dev`, so don't author on a DB the Go service already touched)
 
 # 4. Run both processes (web :3000 + Go :8080)
 pnpm dev
@@ -95,14 +101,13 @@ text at any past point.
 
 | Command | What |
 |---------|------|
-| `pnpm dev` | web + ws-server in parallel |
-| `pnpm --filter web dev` / `--filter ws-server dev` | one process |
+| `pnpm dev` | web (:3000) + Go sync server (:8080) in parallel |
+| `pnpm --filter web dev` / `pnpm dev:go` | one process |
 | `pnpm db:migrate` · `pnpm db:studio` | Prisma migrate / studio |
 | `pnpm test` | vitest unit tests (all packages) |
-| `pnpm test:e2e` | Playwright multi-client E2E (auto-boots both servers) |
+| `pnpm test:e2e` | Playwright multi-client E2E (auto-boots both servers; `E2E_WEB_PORT=3100` if :3000 taken) |
 | `pnpm typecheck` | `tsc --noEmit` across the workspace |
 | `pnpm dev:go` · `pnpm migrate:go` · `pnpm test:go` | Go backend: serve (:8080), migrate, test |
-| `WS_GO=1 pnpm --filter web test:e2e` | E2E against the Go sync server (:8080) |
 
 ### Go backend
 
@@ -139,7 +144,7 @@ packages/
   - `replay.spec` — the replay endpoint reconstructs exact text at a known point; owner-gated.
 - **Load note** (capacity probe): `pnpm --filter web exec tsx scripts/faz7-load.ts [N]`
   — N clients in one room converge with no lost writes (single-node model, invariant #4).
-- **Persistence smoke** (real DB): `apps/*/scripts/faz*-smoke.ts` per phase.
+- **Persistence smoke** (real DB): `apps/web/scripts/faz*-smoke.ts` per phase.
 
 ---
 
