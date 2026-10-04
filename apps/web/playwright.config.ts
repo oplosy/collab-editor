@@ -10,6 +10,10 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * Requires Postgres up (docker compose up -d) and migrations applied.
  */
+// Port override for machines where :3000 is taken (e.g. another dev server):
+//   E2E_WEB_PORT=3100 pnpm test:e2e
+const webPort = process.env.E2E_WEB_PORT ?? '3000';
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 40_000,
@@ -18,7 +22,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${webPort}`,
     trace: 'off',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
@@ -33,8 +37,8 @@ export default defineConfig({
       env: { ...process.env, API_PORT: '8080' },
     },
     {
-      command: 'pnpm --filter web dev',
-      url: 'http://localhost:3000/api/health',
+      command: `pnpm --filter web exec next dev -p ${webPort}`,
+      url: `http://localhost:${webPort}/api/health`,
       reuseExistingServer: true,
       timeout: 120_000,
       stdout: 'ignore',

@@ -23,7 +23,7 @@ type ConnState = 'connecting' | 'connected' | 'offline';
 /**
  * Live collaborative editor (Faz 5). CodeMirror 6 + markdown, bound to a Yjs
  * Y.Text via y-codemirror.next (remote cursors/selections + awareness). The
- * WebsocketProvider connects to the standalone ws-server; the httpOnly session
+ * WebsocketProvider connects to the standalone sync server (services/api-go); the httpOnly session
  * cookie rides the upgrade request (same site), so the server authenticates the
  * handshake without a token in the URL.
  */

@@ -12,7 +12,7 @@ import { ShareControls } from './share-controls';
 /**
  * Document view (Faz 5) — Server Component gate + live editor.
  * Owner-scoped: unknown/non-owned id → 404. The client Editor takes over: it
- * connects to the ws-server, loads state via sync, and renders CodeMirror with
+ * connects to the Go sync server, loads state via sync, and renders CodeMirror with
  * remote cursors. SSR just renders the shell (auth + title).
  */
 export default async function DocumentPage({ params }: { params: Promise<{ id: string }> }) {

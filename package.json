@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "concurrently -n web,go -c blue,magenta \"pnpm --filter web dev\" \"pnpm dev:go\"",
     "build": "pnpm -r build",
-    "db:migrate": "pnpm --filter db migrate",
+    "db:migrate": "pnpm --filter db migrate:deploy",
+    "db:migrate:dev": "pnpm --filter db migrate",
     "db:studio": "pnpm --filter db studio",
     "db:generate": "pnpm --filter db generate",
     "test": "pnpm -r --if-present test",

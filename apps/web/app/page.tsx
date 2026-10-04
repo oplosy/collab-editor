@@ -20,7 +20,7 @@ export default async function HomePage() {
         <h1 style={{ margin: '8px 0 8px', fontSize: 36, lineHeight: 1.1, letterSpacing: -1 }}>Collab Editor</h1>
         <p style={{ margin: 0, color: '#555', maxWidth: 620, lineHeight: 1.6 }}>
           Markdown where many cursors type at once. Yjs <code>Y.Text</code> merges edits deterministically, a
-          standalone ws-server handles sync + awareness, Postgres keeps an append-only op log with snapshots.
+          a standalone Go sync server handles sync + awareness, Postgres keeps an append-only op log with snapshots.
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
           {session ? (

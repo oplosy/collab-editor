@@ -51,7 +51,7 @@ Açık çağırma örneği:
 
 ## 4. Sık Yapılan Hatalara Karşı Uyarılar (Claude'a hatırlat)
 
-- WebSocket'i Next Server Component içinde açmaya çalışmak → HATA. Ayrı ws-server + client component.
+- WebSocket'i Next Server Component içinde açmaya çalışmak → HATA. Ayrı sync server (services/api-go) + client component.
 - Metni düz string diff olarak senkronlamak → INVARIANT #1 ihlali. Binary update kullan.
 - Elle `version: int` kolonu ekleyip artırmak → INVARIANT #5 ihlali. Yjs state vector kullan.
 - Snapshot'tan önce op log prune etmek → INVARIANT #3 ihlali. Sıra: commit → prune.
