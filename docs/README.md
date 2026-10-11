@@ -8,9 +8,11 @@ Start with the [repository README](../README.md) for the architecture, setup, da
 - [Claude Code playbook](claude-code-playbook.md)
 - [Feature 12 demo notes](f12-demo/)
 
+- [Shared database migration workflow](database-migrations.md)
+
 ## Implementation details
 
-- [Web client](../apps/web/README.md)
-- [Go API service](../services/api-go/README.md)
-- [Database package](../packages/db/README.md)
-- [Protocol package](../packages/protocol/README.md)
+- [Web client](../apps/web/)
+- [Go API service](../services/api-go/)
+- [Database package](../packages/db/)
+- [Protocol package](../packages/protocol/)
